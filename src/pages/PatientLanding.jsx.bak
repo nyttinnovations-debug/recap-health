@@ -1,0 +1,147 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { patientData, getLocalizedPatientData } from '../data/mockData'
+import { useLang, LangPicker } from '../context/LanguageContext'
+import RecapLogo from '../components/RecapLogo'
+
+export default function PatientLanding() {
+  const navigate = useNavigate()
+  const { t, lang } = useLang()
+  const [step, setStep] = useState('info')
+  const [telegram, setTelegram] = useState('')
+  const [telegramSent, setTelegramSent] = useState(false)
+  const p = getLocalizedPatientData(lang)
+
+  const handleContinue = () => {
+    if (step === 'info') { setStep('telegram'); return }
+    localStorage.setItem('recap_patient', JSON.stringify({ ...p, telegramNumber: telegram }))
+    localStorage.setItem('recap_checkins', JSON.stringify([]))
+    navigate('/dashboard')
+  }
+
+  return (
+    <div style={{ minHeight:'100vh', background:'linear-gradient(160deg,#EBF3FF 0%,#F0F4F8 50%,#F5F0FF 100%)' }}>
+      <div style={{ position:'fixed', top:-80, right:-80, width:300, height:300, borderRadius:'50%', background:'rgba(26,115,232,0.06)', pointerEvents:'none' }} />
+      <div style={{ position:'fixed', bottom:-60, left:-60, width:250, height:250, borderRadius:'50%', background:'rgba(109,40,217,0.05)', pointerEvents:'none' }} />
+
+      <div style={{ position:'relative', zIndex:1, maxWidth:440, margin:'0 auto', padding:'0 20px', minHeight:'100vh', display:'flex', flexDirection:'column' }}>
+
+        {/* Top bar with LOGO and language picker */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', paddingTop:24, paddingBottom:8 }}>
+          <RecapLogo size={40} showText={true} />
+          <LangPicker />
+        </div>
+
+        {/* STEP: INFO */}
+        {step === 'info' && (
+          <div style={{ flex:1, paddingTop:24, paddingBottom:100 }}>
+            <div style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'4px 12px', borderRadius:99, background:'rgba(5,150,105,0.1)', border:'1px solid rgba(5,150,105,0.2)', marginBottom:16 }}>
+              <div style={{ width:6, height:6, borderRadius:'50%', background:'#059669' }} />
+              <span style={{ color:'#059669', fontSize:'0.65rem', fontFamily:'Syne,sans-serif', fontWeight:700, letterSpacing:'0.1em' }}>{t('land_badge')}</span>
+            </div>
+            <h1 style={{ fontFamily:'Syne,sans-serif', fontWeight:900, fontSize:'2rem', lineHeight:1.15, color:'#111827', letterSpacing:'-0.03em', marginBottom:10 }}>
+              {t('land_title').replace(t('land_title_highlight'), '')}<span style={{ background:'linear-gradient(135deg,#1A73E8,#6D28D9)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>{t('land_title_highlight')}</span>
+            </h1>
+            <p style={{ color:'#6B7280', fontSize:'0.875rem', lineHeight:1.65, marginBottom:24 }}>{t('land_subtitle')}</p>
+
+            {/* Patient card */}
+            <div style={{ background:'#fff', border:'1px solid rgba(0,0,0,0.08)', borderRadius:16, padding:20, boxShadow:'0 4px 12px rgba(0,0,0,0.06)', marginBottom:16 }}>
+              <div style={{ display:'flex', alignItems:'flex-start', gap:14, marginBottom:16 }}>
+                <div style={{ width:52, height:52, borderRadius:14, background:'linear-gradient(135deg,rgba(26,115,232,0.1),rgba(109,40,217,0.1))', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.5rem', flexShrink:0 }}>👤</div>
+                <div>
+                  <div style={{ fontSize:'0.62rem', color:'#9CA3AF', fontFamily:'Syne,sans-serif', fontWeight:700, letterSpacing:'0.09em', textTransform:'uppercase' }}>{t('land_pid')} · {p.id}</div>
+                  <div style={{ fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:'1.1rem', color:'#111827', marginTop:1 }}>{p.name}</div>
+                  <div style={{ color:'#6B7280', fontSize:'0.78rem' }}>{p.age} {t('land_age').toLowerCase()} · {p.gender} · {p.bloodGroup}</div>
+                </div>
+              </div>
+              <div style={{ borderTop:'1px solid rgba(0,0,0,0.07)', paddingTop:14, display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+                {[[t('land_hospital'),p.hospital],[t('land_surgery_date'),p.dischargeDate],[t('land_operation'),p.surgery.simpleName],[t('land_surgeon'),p.surgeon]].map(([l,v])=>(
+                  <div key={l}>
+                    <div style={{ fontSize:'0.6rem', color:'#9CA3AF', fontFamily:'Syne,sans-serif', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em' }}>{l}</div>
+                    <div style={{ fontSize:'0.8rem', fontWeight:600, color:'#111827', marginTop:2 }}>{v}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop:14, display:'inline-flex', alignItems:'center', gap:6, padding:'5px 10px', borderRadius:8, background:'rgba(26,115,232,0.07)', border:'1px solid rgba(26,115,232,0.15)' }}>
+                <span style={{ fontSize:'0.8rem' }}>🔬</span>
+                <span style={{ color:'#1A73E8', fontSize:'0.72rem', fontFamily:'Syne,sans-serif', fontWeight:700 }}>{p.surgery.type}</span>
+              </div>
+            </div>
+
+            {/* Features */}
+            <div style={{ background:'rgba(26,115,232,0.04)', border:'1px solid rgba(26,115,232,0.12)', borderRadius:16, padding:16 }}>
+              <div style={{ fontSize:'0.68rem', fontFamily:'Syne,sans-serif', fontWeight:700, color:'#1A73E8', letterSpacing:'0.09em', textTransform:'uppercase', marginBottom:12 }}>{t('land_next_title')}</div>
+              {['land_f1','land_f2','land_f3','land_f4','land_f5','land_f6'].map((k,i)=>(
+                <div key={k} style={{ display:'flex', alignItems:'flex-start', gap:10, marginBottom:8 }}>
+                  <div style={{ width:22, height:22, borderRadius:6, background:'rgba(26,115,232,0.1)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.7rem', flexShrink:0 }}>
+                    {['📋','💊','📊','🤖','📅','🏥'][i]}
+                  </div>
+                  <span style={{ color:'#374151', fontSize:'0.8rem', lineHeight:1.5 }}>{t(k)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* STEP: TELEGRAM */}
+        {step === 'telegram' && (
+          <div style={{ flex:1, paddingTop:32, paddingBottom:100 }}>
+            <div style={{ width:64, height:64, borderRadius:20, background:'rgba(26,115,232,0.1)', border:'1px solid rgba(26,115,232,0.18)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:20, fontSize:'2rem' }}>💬</div>
+            <h2 style={{ fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:'1.6rem', color:'#111827', letterSpacing:'-0.025em', marginBottom:8 }}>{t('land_telegram_title')}</h2>
+            <p style={{ color:'#6B7280', fontSize:'0.875rem', lineHeight:1.65, marginBottom:24 }}>{t('land_telegram_sub')}</p>
+
+            {!telegramSent ? (
+              <>
+                <label style={{ display:'block', fontSize:'0.7rem', fontFamily:'Syne,sans-serif', fontWeight:700, color:'#6B7280', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:6 }}>{t('land_telegram_label')}</label>
+                <input type="tel" placeholder={t('land_telegram_placeholder')} value={telegram} onChange={e=>setTelegram(e.target.value)} style={{ marginBottom:12 }} />
+                <button onClick={()=>telegram.length>4&&setTelegramSent(true)} className="btn-primary" style={{ width:'100%', marginBottom:10, display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
+{t('land_confirm_btn')}
+                </button>
+              </>
+            ) : (
+              <div>
+                <div style={{ background:'#fff', border:'1px solid rgba(5,150,105,0.2)', borderRadius:14, padding:16, marginBottom:14 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+                    <div style={{ width:36, height:36, borderRadius:10, background:'rgba(5,150,105,0.1)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.1rem' }}>✅</div>
+                    <div>
+                      <div style={{ fontFamily:'Syne,sans-serif', fontWeight:700, color:'#059669', fontSize:'0.85rem' }}>{ t('land_confirmed')}</div>
+                      <div style={{ color:'#6B7280', fontSize:'0.72rem' }}>{telegram}</div>
+                    </div>
+                  </div>
+                  <div style={{ padding:'10px 12px', borderRadius:10, background:'rgba(5,150,105,0.06)', border:'1px solid rgba(5,150,105,0.15)' }}>
+                    <div style={{ color:'#374151', fontSize:'0.8rem', lineHeight:1.55 }}>⏰ {t('land_telegram_sent')}</div>
+                  </div>
+                </div>
+                <a href="https://t.me/recaprecoverybot" target="_blank" rel="noreferrer" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, width:'100%', padding:'13px', borderRadius:14, background:'linear-gradient(135deg,#229ED9,#0f8abc)', color:'#fff', fontFamily:'Syne,sans-serif', fontWeight:700, fontSize:'0.9rem', textDecoration:'none', boxShadow:'0 3px 10px rgba(34,158,217,0.3)', marginBottom:10 }}>
+                  ✈️ {t('land_open_bot')}
+                </a>
+              </div>
+            )}
+
+            <div style={{ background:'#fff', border:'1px solid rgba(26,115,232,0.12)', borderRadius:12, padding:12 }}>
+              <div style={{ display:'flex', gap:8 }}>
+                <span style={{ fontSize:'0.85rem', flexShrink:0 }}>🔒</span>
+                <p style={{ color:'#6B7280', fontSize:'0.76rem', lineHeight:1.55, margin:0 }}>{t('land_telegram_privacy')}</p>
+              </div>
+            </div>
+            {!telegramSent && (
+              <button onClick={()=>navigate('/dashboard')} style={{ display:'block', margin:'14px auto 0', background:'none', border:'none', color:'#9CA3AF', fontSize:'0.78rem', cursor:'pointer' }}>
+                {t('land_telegram_skip')}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* CTA pinned bottom */}
+        <div style={{ position:'fixed', bottom:0, left:0, right:0, padding:'16px 20px 28px', background:'rgba(240,244,248,0.97)', backdropFilter:'blur(16px)', borderTop:'1px solid rgba(0,0,0,0.07)' }}>
+          <div style={{ maxWidth:440, margin:'0 auto' }}>
+            <button onClick={handleContinue} className="btn-primary" style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+              {step==='info' ? t('land_btn1') : t('land_btn2')} <span>→</span>
+            </button>
+            <p style={{ color:'#9CA3AF', fontSize:'0.68rem', textAlign:'center', marginTop:8, marginBottom:0 }}>{t('land_monitored')} {p.hospital}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
