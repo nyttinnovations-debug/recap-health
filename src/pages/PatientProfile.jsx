@@ -10,14 +10,15 @@ const SC = {
 }
 
 // Generate matched global data for the patient's profile
-function getMatchedInsights(patient) {
-  const bmarks = globalPatterns.recoveryBenchmarks['Laparoscopic Cholecystectomy']
+function getMatchedInsights(patient, lang) {
+  const gp = getLocalizedGlobalPatterns(lang)
+  const bmarks = gp.recoveryBenchmarks['Laparoscopic Cholecystectomy']
   const totalMatched = 247
   const diabetic = patient.comorbidities?.includes('Type 2 Diabetes')
 
   // Build comparison chart data: patient score vs global average
   const stored = JSON.parse(localStorage.getItem('recap_checkins') || '[]')
-  const globalAvg = globalPatterns.recoveryByDay
+  const globalAvg = gp.recoveryByDay
 
   const comparison = globalAvg.map(g => {
     const patientEntry = stored.find(c => c.day === g.day)
@@ -62,10 +63,11 @@ function CompTooltip({ active, payload, label }) {
 export default function PatientProfile() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { t } = useLang()
-  const patient = hospitalPatients.find(p => p.id === id) || hospitalPatients[0]
+  const { t, lang } = useLang()
+  const locList = getLocalizedHospitalPatients(lang)
+  const patient = locList.find(p => p.id === id) || locList[0]
   const sc = SC[patient.status]
-  const insights = getMatchedInsights(patient)
+  const insights = getMatchedInsights(patient, lang)
 
   return (
     <div style={{ minHeight:'100vh', background:'#F5F7FA' }}>
